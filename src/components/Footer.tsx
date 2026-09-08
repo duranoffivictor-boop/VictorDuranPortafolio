@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, Code, ArrowUp, Compass } from 'lucide-react';
+import { MessageCircle, Code, ArrowUp, Compass, Video, Facebook, Instagram, Twitter, Share2 } from 'lucide-react';
 import { SiteConfig } from '../types';
 
 interface FooterProps {
@@ -20,9 +20,17 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenPrivacy }) => {
     { label: 'Inicio', href: '#inicio' },
     { label: 'Habilidades', href: '#habilidades' },
     { label: 'Proyectos', href: '#proyectos' },
+    { label: 'Redes Sociales', href: '#redes-sociales' },
     { label: 'Reseñas & Clientes', href: '#resenas' },
     { label: 'Contacto', href: '#contacto' },
   ];
+
+  const socialLinks = [
+    { name: 'TikTok', url: config.tiktokUrl, icon: Video, color: 'hover:text-pink-400 hover:border-pink-500/50 hover:bg-pink-500/10' },
+    { name: 'Facebook', url: config.facebookUrl, icon: Facebook, color: 'hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10' },
+    { name: 'Instagram', url: config.instagramUrl, icon: Instagram, color: 'hover:text-fuchsia-400 hover:border-fuchsia-500/50 hover:bg-fuchsia-500/10' },
+    { name: 'X', url: config.twitterUrl, icon: Twitter, color: 'hover:text-slate-200 hover:border-slate-500/50 hover:bg-slate-800' },
+  ].filter(link => Boolean(link.url && link.url !== '#'));
 
   return (
     <footer id="main-footer" className="bg-slate-950 border-t border-slate-800/80 text-slate-400 text-xs sm:text-sm relative">
@@ -70,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenPrivacy }) => {
             <p className="text-slate-400 text-xs leading-relaxed max-w-md">
               Desarrollador Web especializado en HTML5 semántico, CSS3 adaptable a móviles y laptops, y JavaScript interactivo de alto rendimiento.
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap items-center gap-2">
               <a
                 id="footer-whatsapp-badge"
                 href={whatsappUrl}
@@ -82,6 +90,32 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenPrivacy }) => {
                 <span>WhatsApp: {config.whatsappNumber}</span>
               </a>
             </div>
+
+            {/* Social icons row */}
+            {socialLinks.length > 0 && (
+              <div className="pt-2 space-y-2">
+                <span className="text-[11px] font-mono text-slate-400 block font-medium">Sígueme en redes:</span>
+                <div className="flex flex-wrap gap-2">
+                  {socialLinks.map((social) => {
+                    const IconComp = social.icon;
+                    return (
+                      <a
+                        key={social.name}
+                        id={`footer-social-${social.name.toLowerCase()}`}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Perfil de ${social.name}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 text-xs text-slate-300 transition-all active:scale-95 shadow-sm ${social.color}`}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                        <span>{social.name}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Links Column */}

@@ -16,6 +16,10 @@ export interface SiteConfig {
   githubUrl: string;
   linkedinUrl: string;
   cvUrl: string;
+  tiktokUrl: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  twitterUrl: string; // X (anteriormente Twitter)
 }
 
 export interface SkillItem {

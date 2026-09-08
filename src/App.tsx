@@ -4,6 +4,7 @@ import { Hero } from './components/Hero';
 import { SkillsSection } from './components/SkillsSection';
 import { ProjectsSection } from './components/ProjectsSection';
 import { ReviewsSection } from './components/ReviewsSection';
+import { SocialSection } from './components/SocialSection';
 import { ContactSection } from './components/ContactSection';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { PrivacyModal } from './components/PrivacyModal';
@@ -129,6 +130,9 @@ export default function App() {
           reviews={reviews} 
           onReviewSubmitted={loadPortfolioData} 
         />
+
+        {/* Social Media Networks (TikTok, Facebook, Instagram, X/Twitter, GitHub, LinkedIn) */}
+        <SocialSection config={config} />
 
         {/* Contact Section with WhatsApp Direct and Inquiry Form */}
         <ContactSection config={config} />

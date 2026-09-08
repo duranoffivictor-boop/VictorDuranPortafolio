@@ -29,18 +29,51 @@ const STORAGE_KEYS = {
   TOKEN: 'vd_admin_token'
 };
 
-// Safe Fetch JSON helper that prevents:
+// Check if running in a static hosting environment (like GitHub Pages)
+const isStaticHost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname.includes('github.io') ||
+    window.location.hostname.includes('github.preview') ||
+    window.location.protocol === 'file:');
+
+// Flag to avoid repeated failed network attempts when running in client-only mode
+let isServerAvailable = !isStaticHost;
+
+// Safe Fetch JSON helper that prevents 404s and:
 // "Unexpected token '<', '<html> <he'... is not valid JSON"
 async function safeFetchJson<T = any>(
   url: string,
   options?: RequestInit
 ): Promise<{ ok: boolean; status: number; data?: T; isStaticHtml?: boolean; error?: string }> {
+  // If we know we are in static hosting or server is unavailable, skip network request entirely
+  if (!isServerAvailable) {
+    return {
+      ok: false,
+      status: 200,
+      isStaticHtml: false,
+      error: 'Modo estático activo (sin servidor de backend)'
+    };
+  }
+
   try {
     const res = await fetch(url, options);
+
+    // If endpoint is 404 (e.g. server route not mounted), disable server calls to keep console clean
+    if (res.status === 404) {
+      isServerAvailable = false;
+      return {
+        ok: false,
+        status: 404,
+        isStaticHtml: true,
+        error: 'Ruta no encontrada'
+      };
+    }
+
     const contentType = res.headers.get('content-type') || '';
 
     // If server returned an HTML page (like GitHub Pages fallback 404 or index.html)
     if (!contentType.includes('application/json')) {
+      isServerAvailable = false;
       return {
         ok: false,
         status: res.status,
@@ -58,6 +91,7 @@ async function safeFetchJson<T = any>(
       error: !res.ok ? (data?.error || `Error ${res.status}`) : undefined
     };
   } catch (err: any) {
+    isServerAvailable = false;
     return {
       ok: false,
       status: 0,
@@ -89,7 +123,8 @@ function setLocal<T>(key: string, value: T): void {
 export const PortfolioService = {
   // 1. Get full portfolio data (Hybrid: Server API with Local Storage fallback)
   async getFullPortfolio(authToken?: string | null): Promise<PortfolioData> {
-    const localConfig = getLocal<SiteConfig>(STORAGE_KEYS.CONFIG, INITIAL_CONFIG);
+    const rawLocalConfig = getLocal<Partial<SiteConfig>>(STORAGE_KEYS.CONFIG, INITIAL_CONFIG);
+    const localConfig: SiteConfig = { ...INITIAL_CONFIG, ...rawLocalConfig };
     const localSkills = getLocal<SkillItem[]>(STORAGE_KEYS.SKILLS, INITIAL_SKILLS);
     const localProjects = getLocal<Project[]>(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS);
     const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);

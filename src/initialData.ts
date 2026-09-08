@@ -15,9 +15,13 @@ export const INITIAL_CONFIG: SiteConfig = {
   completedProjects: "35+",
   satisfiedClients: "100%",
   availableForFreelance: true,
-  githubUrl: "https://github.com",
+  githubUrl: "https://github.com/duranoffivictor-boop",
   linkedinUrl: "https://linkedin.com",
-  cvUrl: "#"
+  cvUrl: "#",
+  tiktokUrl: "https://tiktok.com/@victorduran.dev",
+  facebookUrl: "https://facebook.com/victorduran.dev",
+  instagramUrl: "https://instagram.com/victorduran.dev",
+  twitterUrl: "https://x.com/victorduran"
 };
 
 export const INITIAL_SKILLS: SkillItem[] = [
