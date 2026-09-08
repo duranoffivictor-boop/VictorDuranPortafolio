@@ -553,26 +553,46 @@ app.get("/api/reviews", (req, res) => {
   res.json(approved);
 });
 
-// Public visitors submit a review
+// Public visitors submit a review (Supports Google Sign-in, strictly 1 review per Google account)
 app.post("/api/reviews", (req, res) => {
-  const { authorName, authorRole, authorCompany, rating, comment } = req.body;
+  const { authorName, authorRole, authorCompany, rating, comment, authorAvatar, googleUserId, googleEmail } = req.body;
 
   if (!authorName || !comment || !rating) {
     return res.status(400).json({ error: "Nombre, calificación y reseña son campos requeridos." });
   }
 
   const db = readDatabase();
+
+  // Enforce 1 review per Google account
+  if (googleUserId || googleEmail) {
+    const existingRev = (db.reviews || []).find((r: any) => 
+      (googleUserId && r.googleUserId && String(r.googleUserId) === String(googleUserId)) ||
+      (googleEmail && r.googleEmail && String(r.googleEmail).toLowerCase() === String(googleEmail).toLowerCase())
+    );
+
+    if (existingRev) {
+      return res.status(400).json({ 
+        error: "Ya tienes una reseña registrada con esta cuenta de Google. Cada cuenta solo puede publicar una reseña. Puedes editar o eliminar tu reseña existente.",
+        existingReviewId: existingRev.id
+      });
+    }
+  }
+
   const newReview = {
     id: "rev-" + Date.now(),
     authorName: String(authorName).trim(),
     authorRole: String(authorRole || "Cliente").trim(),
     authorCompany: String(authorCompany || "Proyecto Particular").trim(),
-    authorAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorName)}&backgroundColor=0284c7,0d9488,6366f1`,
+    authorAvatar: authorAvatar && String(authorAvatar).trim() 
+      ? String(authorAvatar).trim() 
+      : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorName)}&backgroundColor=0284c7,0d9488,6366f1`,
     rating: Math.min(5, Math.max(1, Number(rating) || 5)),
     comment: String(comment).trim(),
     date: new Date().toISOString().split("T")[0],
     verified: true,
-    status: "approved" // immediately approved so user sees it live, but admin can manage
+    status: "approved", // immediately approved so user sees it live
+    googleUserId: googleUserId ? String(googleUserId).trim() : undefined,
+    googleEmail: googleEmail ? String(googleEmail).trim() : undefined
   };
 
   db.reviews = [newReview, ...(db.reviews || [])];
@@ -580,9 +600,64 @@ app.post("/api/reviews", (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: "¡Gracias por tu reseña! Ha sido registrada en el servidor con éxito.",
+    message: "¡Gracias por tu reseña con Google! Ha sido registrada en el servidor con éxito.",
     review: newReview
   });
+});
+
+// Update review (Allowed for review owner via googleUserId or Admin)
+app.put("/api/reviews/:id", (req, res) => {
+  const db = readDatabase();
+  const { id } = req.params;
+  const { googleUserId, rating, comment, authorRole, authorCompany } = req.body;
+  const authHeader = req.headers.authorization;
+  const isAdmin = authHeader && authHeader.startsWith("Bearer ") && activeTokens.has(authHeader.split(" ")[1]);
+
+  const index = (db.reviews || []).findIndex((r: any) => r.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: "Reseña no encontrada." });
+  }
+
+  const existing = db.reviews[index];
+  const isOwner = googleUserId && existing.googleUserId && String(googleUserId) === String(existing.googleUserId);
+
+  if (!isAdmin && !isOwner) {
+    return res.status(403).json({ error: "No tienes permiso para modificar esta reseña." });
+  }
+
+  if (rating) db.reviews[index].rating = Math.min(5, Math.max(1, Number(rating)));
+  if (comment) db.reviews[index].comment = String(comment).trim();
+  if (authorRole !== undefined) db.reviews[index].authorRole = String(authorRole).trim();
+  if (authorCompany !== undefined) db.reviews[index].authorCompany = String(authorCompany).trim();
+  db.reviews[index].updatedAt = new Date().toISOString().split("T")[0];
+
+  writeDatabase(db);
+  res.json({ success: true, review: db.reviews[index], message: "Reseña actualizada exitosamente." });
+});
+
+// Delete review (Allowed for review owner via googleUserId or Admin)
+app.delete("/api/reviews/:id", (req, res) => {
+  const db = readDatabase();
+  const { id } = req.params;
+  const googleUserId = req.query.googleUserId || req.body?.googleUserId;
+  const authHeader = req.headers.authorization;
+  const isAdmin = authHeader && authHeader.startsWith("Bearer ") && activeTokens.has(authHeader.split(" ")[1]);
+
+  const index = (db.reviews || []).findIndex((r: any) => r.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: "Reseña no encontrada." });
+  }
+
+  const existing = db.reviews[index];
+  const isOwner = googleUserId && existing.googleUserId && String(googleUserId) === String(existing.googleUserId);
+
+  if (!isAdmin && !isOwner) {
+    return res.status(403).json({ error: "No tienes permiso para eliminar esta reseña." });
+  }
+
+  db.reviews = (db.reviews || []).filter((r: any) => r.id !== id);
+  writeDatabase(db);
+  res.json({ success: true, message: "Reseña eliminada con éxito." });
 });
 
 app.put("/api/admin/reviews/:id", requireAdmin, (req, res) => {
@@ -645,6 +720,65 @@ app.delete("/api/admin/inquiries/:id", requireAdmin, (req, res) => {
   db.inquiries = (db.inquiries || []).filter((i: any) => i.id !== id);
   writeDatabase(db);
   res.json({ success: true });
+});
+
+// SEO Endpoints: robots.txt and sitemap.xml
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain");
+  res.send(`User-agent: *
+Allow: /
+Disallow: /api/admin
+Sitemap: https://duranoffivictor-boop.github.io/VictorDuranPortafolio/sitemap.xml
+`);
+});
+
+app.get("/sitemap.xml", (_req, res) => {
+  const currentDate = new Date().toISOString().split("T")[0];
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/#ventajas</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/#proyectos</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/#faq</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/#resenas</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://duranoffivictor-boop.github.io/VictorDuranPortafolio/#contacto</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>`;
+
+  res.type("application/xml");
+  res.send(sitemapXml);
 });
 
 // ========================

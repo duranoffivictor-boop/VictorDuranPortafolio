@@ -4,6 +4,8 @@ import { Hero } from './components/Hero';
 import { SkillsSection } from './components/SkillsSection';
 import { ProjectsSection } from './components/ProjectsSection';
 import { ReviewsSection } from './components/ReviewsSection';
+import { ValuePropsSection } from './components/ValuePropsSection';
+import { FAQSection } from './components/FAQSection';
 import { SocialSection } from './components/SocialSection';
 import { ContactSection } from './components/ContactSection';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
@@ -26,6 +28,38 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Theme management: 'dark' (default) or 'light' with persistent localStorage storage
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const savedTheme = localStorage.getItem('vd_portfolio_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        return savedTheme;
+      }
+    } catch (_) {}
+    return 'dark';
+  });
+
+  // Apply theme class to document root element
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
+      root.style.colorScheme = 'light';
+    }
+    try {
+      localStorage.setItem('vd_portfolio_theme', theme);
+    } catch (_) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Ensure no old token persists in localStorage
   useEffect(() => {
@@ -87,9 +121,9 @@ export default function App() {
 
   if (loading && !config.name) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white space-y-4">
-        <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-        <p className="text-sm font-mono text-slate-400">Cargando portafolio de Víctor Durán...</p>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-900 dark:text-white space-y-4">
+        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+        <p className="text-sm font-mono text-slate-600 dark:text-slate-400">Cargando portafolio de Víctor Durán...</p>
       </div>
     );
   }
@@ -103,15 +137,17 @@ export default function App() {
   };
 
   return (
-    <div id="portfolio-app-root" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div id="portfolio-app-root" className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
       
-      {/* Top Navigation */}
+      {/* Top Navigation with Light/Dark Mode Switcher */}
       <Navbar
         name={config.name}
         whatsappNumber={config.whatsappNumber}
         whatsappMessage={config.whatsappMessage}
         onOpenAdmin={() => setIsAdminOpen(true)}
         isAdminLoggedIn={Boolean(authToken)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Sections with Semantic Layout */}
@@ -125,11 +161,17 @@ export default function App() {
         {/* Filterable Projects Portfolio */}
         <ProjectsSection projects={projects} whatsappNumber={config.whatsappNumber} />
 
+        {/* Why Choose Victor Duran & 4-Step Methodology */}
+        <ValuePropsSection whatsappNumber={config.whatsappNumber} />
+
         {/* High Standards Reviews & Interactive Rating Submission Form */}
         <ReviewsSection 
           reviews={reviews} 
           onReviewSubmitted={loadPortfolioData} 
         />
+
+        {/* Interactive FAQ Section with High-Converting SEO Accordion */}
+        <FAQSection whatsappNumber={config.whatsappNumber} />
 
         {/* Social Media Networks (TikTok, Facebook, Instagram, X/Twitter, GitHub, LinkedIn) */}
         <SocialSection config={config} />

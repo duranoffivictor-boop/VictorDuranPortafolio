@@ -77,7 +77,7 @@ export const SocialSection: React.FC<SocialSectionProps> = ({ config }) => {
   ];
 
   return (
-    <section id="redes-sociales" className="py-20 bg-slate-950 text-white relative border-t border-slate-900 overflow-hidden">
+    <section id="redes-sociales" className="py-20 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white relative border-t border-slate-200 dark:border-slate-900 overflow-hidden transition-colors duration-200">
       {/* Glow ambient background elements */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -86,16 +86,16 @@ export const SocialSection: React.FC<SocialSectionProps> = ({ config }) => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-medium text-emerald-400 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium text-emerald-800 dark:text-emerald-400 shadow-xs">
             <Share2 className="w-3.5 h-3.5" />
             <span>Presencia Digital & Comunidad</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Conéctate Conmigo en Redes Sociales
           </h2>
 
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
             Sígueme en mis canales oficiales para ver contenido práctico sobre desarrollo web, proyectos en vivo, consejos de programación y tips de optimización.
           </p>
         </div>
@@ -104,47 +104,46 @@ export const SocialSection: React.FC<SocialSectionProps> = ({ config }) => {
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {socialNetworks.map((net) => {
             const IconComponent = net.icon;
-            const hasValidUrl = Boolean(net.url && net.url !== '#');
 
             return (
               <div
                 key={net.id}
                 id={`social-card-${net.id}`}
-                className={`group relative bg-slate-900/70 hover:bg-slate-900 border border-slate-800/90 ${net.borderHover} rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between shadow-lg hover:shadow-2xl hover:-translate-y-1`}
+                className={`group relative bg-white dark:bg-slate-900/70 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 ${net.borderHover} rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between shadow-xs hover:shadow-xl hover:-translate-y-1`}
               >
                 {/* Background soft gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${net.color} opacity-30 group-hover:opacity-60 rounded-2xl transition-opacity pointer-events-none`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${net.color} opacity-20 dark:opacity-30 group-hover:opacity-50 dark:group-hover:opacity-60 rounded-2xl transition-opacity pointer-events-none`} />
 
                 <div className="relative space-y-4">
                   {/* Top Header inside Card */}
                   <div className="flex items-center justify-between">
-                    <div className={`w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center ${net.iconColor} shadow-inner group-hover:scale-105 transition-transform`}>
+                    <div className={`w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center ${net.iconColor} shadow-inner group-hover:scale-105 transition-transform`}>
                       <IconComponent className="w-6 h-6" />
                     </div>
 
-                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-950/80 border border-slate-800 text-slate-300 font-medium">
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                       {net.badge}
                     </span>
                   </div>
 
                   {/* Title & Handle */}
                   <div>
-                    <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
                       <span>{net.name}</span>
                     </h3>
-                    <p className="text-xs font-mono text-slate-400 mt-0.5">
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
                       {net.handle}
                     </p>
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs text-slate-300 leading-relaxed min-h-[3rem]">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[3rem]">
                     {net.description}
                   </p>
                 </div>
 
                 {/* Card CTA Action Button */}
-                <div className="relative pt-6 mt-4 border-t border-slate-800/80">
+                <div className="relative pt-6 mt-4 border-t border-slate-200 dark:border-slate-800/80">
                   <a
                     id={`btn-social-link-${net.id}`}
                     href={net.url}
@@ -162,15 +161,15 @@ export const SocialSection: React.FC<SocialSectionProps> = ({ config }) => {
         </div>
 
         {/* Bottom Fast Contact Banner */}
-        <div className="mt-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-slate-900 to-teal-950/50 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="mt-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-teal-50 dark:from-emerald-950/50 dark:via-slate-900 dark:to-teal-950/50 border border-emerald-300 dark:border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="flex items-center gap-4 text-center sm:text-left">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 mx-auto sm:mx-0">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 mx-auto sm:mx-0">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-white">¿Prefieres atención inmediata?</h4>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Escríbeme por WhatsApp al <strong className="text-emerald-400 font-mono">{config.whatsappNumber}</strong> y cotiza tu sitio web en minutos.
+              <h4 className="text-base font-bold text-slate-900 dark:text-white">¿Prefieres atención inmediata?</h4>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                Escríbeme por WhatsApp al <strong className="text-emerald-700 dark:text-emerald-400 font-mono">{config.whatsappNumber}</strong> y cotiza tu sitio web en minutos.
               </p>
             </div>
           </div>

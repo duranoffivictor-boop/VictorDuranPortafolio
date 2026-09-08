@@ -22,15 +22,15 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({
       {showTooltip && (
         <div 
           id="whatsapp-tooltip-balloon"
-          className="relative bg-slate-900 text-white text-xs md:text-sm py-2.5 px-4 rounded-xl shadow-2xl border border-slate-700/80 max-w-[240px] md:max-w-xs flex items-start gap-2"
+          className="relative bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs md:text-sm py-2.5 px-4 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700/80 max-w-[240px] md:max-w-xs flex items-start gap-2"
         >
           <div className="flex-1">
-            <p className="font-semibold text-emerald-400 flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
+            <p className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
               ¿Tienes un proyecto en mente?
             </p>
-            <p className="text-slate-300 mt-0.5 text-xs">
-              Escríbeme directo a WhatsApp: <span className="text-white font-medium">{phoneNumber}</span>
+            <p className="text-slate-600 dark:text-slate-300 mt-0.5 text-xs">
+              Escríbeme directo a WhatsApp: <span className="text-slate-900 dark:text-white font-medium">{phoneNumber}</span>
             </p>
           </div>
           <button
@@ -40,7 +40,7 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({
               e.stopPropagation();
               setShowTooltip(false);
             }}
-            className="text-slate-400 hover:text-white p-0.5 transition-colors"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 transition-colors"
             title="Cerrar aviso"
           >
             <X className="w-3.5 h-3.5" />

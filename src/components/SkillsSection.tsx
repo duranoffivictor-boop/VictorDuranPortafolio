@@ -86,46 +86,46 @@ contactForm.addEventListener("submit", async (event) => {
   };
 
   return (
-    <section id="habilidades" className="py-20 bg-slate-950 text-white relative">
+    <section id="habilidades" className="py-20 bg-white dark:bg-slate-950 text-slate-900 dark:text-white relative border-t border-slate-200 dark:border-slate-900 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs font-mono font-semibold tracking-wider text-emerald-400 uppercase bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 rounded-full">
+          <span className="text-xs font-mono font-semibold tracking-wider text-emerald-800 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1 rounded-full">
             Especialidades & Habilidades Técnicas
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Dominio en <span className="text-emerald-400">HTML5</span>, <span className="text-sky-400">CSS3</span> y <span className="text-yellow-400">JavaScript</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Dominio en <span className="text-emerald-600 dark:text-emerald-400">HTML5</span>, <span className="text-sky-600 dark:text-sky-400">CSS3</span> y <span className="text-yellow-600 dark:text-yellow-400">JavaScript</span>
           </h2>
-          <p className="text-slate-300 text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
             Sin rodeos ni frameworks innecesariamente pesados. Construyo soluciones enfocadas en lo que realmente importa para tu negocio: velocidad de carga, diseño atractivo y facilidad de uso.
           </p>
         </div>
 
         {/* Bio summary banner */}
-        <div className="mt-10 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
+        <div className="mt-10 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xs">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
             <div className="lg:col-span-2 space-y-3">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>¿Por qué elegir mi trabajo de desarrollo?</span>
               </h3>
-              <p className="text-slate-300 text-sm leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                 {aboutBio}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-                <Smartphone className="w-5 h-5 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div className="text-xs">
-                  <strong className="block text-white">100% Mobile & Laptop</strong>
-                  <span className="text-slate-400">Diseñado para cualquier pantalla</span>
+                  <strong className="block text-slate-900 dark:text-white">100% Mobile & Laptop</strong>
+                  <span className="text-slate-500 dark:text-slate-400">Diseñado para cualquier pantalla</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-                <Search className="w-5 h-5 text-sky-400 shrink-0" />
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                <Search className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
                 <div className="text-xs">
-                  <strong className="block text-white">SEO Optimizado</strong>
-                  <span className="text-slate-400">Estructura semántica para Google</span>
+                  <strong className="block text-slate-900 dark:text-white">SEO Optimizado</strong>
+                  <span className="text-slate-500 dark:text-slate-400">Estructura semántica para Google</span>
                 </div>
               </div>
             </div>
@@ -137,30 +137,30 @@ contactForm.addEventListener("submit", async (event) => {
           {skills.map((skill) => (
             <div
               key={skill.id}
-              className="bg-slate-900 border border-slate-800/90 rounded-2xl p-6 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-950/40 transition-all flex flex-col justify-between group"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/90 rounded-2xl p-6 hover:border-emerald-500 dark:hover:border-emerald-500/50 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-emerald-950/40 shadow-xs transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-slate-800 border border-slate-700 group-hover:scale-105 transition-transform">
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform">
                     {getIcon(skill.icon)}
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-1 rounded border border-emerald-800/50">
+                  <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800/50">
                     {skill.proficiency}%
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
                   {skill.name}
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
                   {skill.description}
                 </p>
 
                 {/* Highlights */}
-                <ul className="space-y-2 pt-2 border-t border-slate-800/80">
+                <ul className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
                   {skill.highlights.map((highlight, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-xs text-slate-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                    <li key={idx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 mt-1.5 shrink-0" />
                       <span>{highlight}</span>
                     </li>
                   ))}
@@ -168,8 +168,8 @@ contactForm.addEventListener("submit", async (event) => {
               </div>
 
               {/* Progress bar */}
-              <div className="mt-6 pt-4 border-t border-slate-800/60">
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+              <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/60">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div 
                     className="bg-gradient-to-r from-emerald-500 to-teal-400 h-1.5 rounded-full transition-all duration-1000"
                     style={{ width: `${skill.proficiency}%` }}
@@ -181,7 +181,7 @@ contactForm.addEventListener("submit", async (event) => {
         </div>
 
         {/* Interactive Code Preview Window */}
-        <div className="mt-16 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="mt-16 bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />

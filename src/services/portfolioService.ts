@@ -29,11 +29,17 @@ const STORAGE_KEYS = {
   TOKEN: 'vd_admin_token'
 };
 
-// Check if running in a static hosting environment (like GitHub Pages)
+// Check if running in a static hosting environment (like GitHub Pages, Cloudflare Pages, etc.)
 const isStaticHost =
   typeof window !== 'undefined' &&
   (window.location.hostname.includes('github.io') ||
     window.location.hostname.includes('github.preview') ||
+    window.location.hostname.includes('pages.dev') ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('netlify.app') ||
+    window.location.hostname.includes('surge.sh') ||
+    window.location.hostname.includes('gitlab.io') ||
+    window.location.pathname.includes('/VictorDuranPortafolio') ||
     window.location.protocol === 'file:');
 
 // Flag to avoid repeated failed network attempts when running in client-only mode
@@ -129,6 +135,17 @@ export const PortfolioService = {
     const localProjects = getLocal<Project[]>(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS);
     const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
     const localPolicy = getLocal<PrivacyPolicy>(STORAGE_KEYS.POLICY, INITIAL_POLICY);
+
+    // If static hosting environment or server unavailable, immediately return local data without firing network requests
+    if (!isServerAvailable) {
+      return {
+        config: localConfig,
+        skills: localSkills,
+        projects: localProjects,
+        reviews: localReviews,
+        privacyPolicy: localPolicy
+      };
+    }
 
     try {
       const [contentRes, projRes, revRes] = await Promise.all([
@@ -400,39 +417,118 @@ export const PortfolioService = {
     return true;
   },
 
-  // 9. Public submit review
+  // 9. Public submit review (with Google Account support)
   async submitPublicReview(review: {
     authorName: string;
     authorRole?: string;
     authorCompany?: string;
     rating: number;
     comment: string;
-  }): Promise<{ success: boolean; message: string }> {
+    authorAvatar?: string;
+    googleUserId?: string;
+    googleEmail?: string;
+  }): Promise<{ success: boolean; message: string; review?: Review }> {
+    const avatar = review.authorAvatar?.trim() 
+      ? review.authorAvatar.trim() 
+      : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(review.authorName)}&backgroundColor=0284c7,0d9488,6366f1`;
+
     const newRev: Review = {
       id: `rev-${Date.now()}`,
       authorName: review.authorName.trim(),
       authorRole: review.authorRole?.trim() || 'Cliente',
       authorCompany: review.authorCompany?.trim() || 'Proyecto Web',
-      authorAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(review.authorName)}&backgroundColor=0284c7,0d9488,6366f1`,
+      authorAvatar: avatar,
       rating: review.rating,
       comment: review.comment.trim(),
       date: new Date().toISOString().split('T')[0],
       verified: true,
-      status: 'approved'
+      status: 'approved',
+      googleUserId: review.googleUserId,
+      googleEmail: review.googleEmail
     };
 
     const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+
+    // Enforce 1 review per Google account
+    if (review.googleUserId || review.googleEmail) {
+      const alreadyHasReview = localReviews.some((r) => 
+        (review.googleUserId && r.googleUserId && String(r.googleUserId) === String(review.googleUserId)) ||
+        (review.googleEmail && r.googleEmail && String(r.googleEmail).toLowerCase() === String(review.googleEmail).toLowerCase())
+      );
+      if (alreadyHasReview) {
+        return {
+          success: false,
+          message: 'Ya tienes una reseña publicada con esta cuenta de Google. Solo se permite 1 reseña por cuenta. Puedes editarla o eliminarla.'
+        };
+      }
+    }
+
     setLocal(STORAGE_KEYS.REVIEWS, [newRev, ...localReviews]);
 
     safeFetchJson('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(review)
+      body: JSON.stringify({
+        ...review,
+        authorAvatar: avatar
+      })
     }).catch(() => {});
 
     return {
       success: true,
-      message: '¡Muchas gracias! Tu reseña y calificación han sido registradas.'
+      message: '¡Muchas gracias! Tu reseña verificada con Google ha sido registrada con éxito.',
+      review: newRev
+    };
+  },
+
+  // 9b. Update Google User Review
+  async updateGoogleReview(
+    id: string,
+    updateData: { rating?: number; comment?: string; authorRole?: string; authorCompany?: string },
+    googleUserId: string
+  ): Promise<{ success: boolean; message: string; review?: Review }> {
+    const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    const index = localReviews.findIndex((r) => r.id === id);
+
+    let updated: Review | undefined;
+    if (index !== -1) {
+      localReviews[index] = {
+        ...localReviews[index],
+        ...updateData,
+        updatedAt: new Date().toISOString().split('T')[0]
+      };
+      updated = localReviews[index];
+      setLocal(STORAGE_KEYS.REVIEWS, localReviews);
+    }
+
+    safeFetchJson(`/api/reviews/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...updateData, googleUserId })
+    }).catch(() => {});
+
+    return {
+      success: true,
+      message: 'Tu reseña ha sido actualizada con éxito.',
+      review: updated
+    };
+  },
+
+  // 9c. Delete Google User Review
+  async deleteGoogleReview(id: string, googleUserId: string): Promise<{ success: boolean; message: string }> {
+    const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    const filtered = localReviews.filter((r) => r.id !== id);
+    setLocal(STORAGE_KEYS.REVIEWS, filtered);
+
+    safeFetchJson(`/api/reviews/${id}?googleUserId=${encodeURIComponent(googleUserId)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ googleUserId })
+    }).catch(() => {});
+
+    return {
+      success: true,
+      message: 'Tu reseña ha sido eliminada con éxito.'
     };
   },
 

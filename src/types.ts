@@ -45,6 +45,13 @@ export interface Project {
   features: string[];
 }
 
+export interface GoogleUser {
+  id: string;
+  name: string;
+  email: string;
+  picture: string;
+}
+
 export interface Review {
   id: string;
   authorName: string;
@@ -56,6 +63,9 @@ export interface Review {
   date: string;
   verified: boolean;
   status: 'approved' | 'pending';
+  googleUserId?: string;
+  googleEmail?: string;
+  updatedAt?: string;
 }
 
 export interface Inquiry {
