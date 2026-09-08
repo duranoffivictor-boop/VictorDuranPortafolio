@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Review } from '../types';
 import { Star, MessageSquarePlus, CheckCircle, Quote, X, Send, Sparkles } from 'lucide-react';
+import { PortfolioService } from '../services/portfolioService';
 
 interface ReviewsSectionProps {
   reviews: Review[];
@@ -35,25 +36,19 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews, onRevie
     setErrorMessage('');
 
     try {
-      const response = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authorName: authorName.trim(),
-          authorRole: authorRole.trim() || 'Cliente',
-          authorCompany: authorCompany.trim() || 'Proyecto Web',
-          rating,
-          comment: comment.trim()
-        })
+      const result = await PortfolioService.submitPublicReview({
+        authorName: authorName.trim(),
+        authorRole: authorRole.trim() || 'Cliente',
+        authorCompany: authorCompany.trim() || 'Proyecto Web',
+        rating,
+        comment: comment.trim()
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al guardar la reseña en el servidor.');
+      if (!result.success) {
+        throw new Error('Error al registrar la reseña.');
       }
 
-      setSuccessMessage('¡Muchas gracias! Tu reseña y calificación han sido registradas en el servidor.');
+      setSuccessMessage('¡Muchas gracias! Tu reseña y calificación han sido registradas.');
       onReviewSubmitted();
       
       // Reset form

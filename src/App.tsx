@@ -9,49 +9,19 @@ import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { PrivacyModal } from './components/PrivacyModal';
 import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
+import { PortfolioService } from './services/portfolioService';
+import { INITIAL_CONFIG, INITIAL_POLICY, INITIAL_SKILLS, INITIAL_PROJECTS, INITIAL_REVIEWS } from './initialData';
 import { PortfolioData, SiteConfig, Project, Review, PrivacyPolicy, SkillItem } from './types';
 import { Loader2 } from 'lucide-react';
 
-const FALLBACK_CONFIG: SiteConfig = {
-  name: "Víctor Durán",
-  title: "Desarrollador Web Frontend | HTML • CSS • JavaScript",
-  headline: "Desarrollo Web Moderno, Rápido y Optimizado para el Éxito de tu Negocio",
-  subheadline: "Especialista en desarrollo web con HTML5 semántico, CSS3 responsive y JavaScript moderno. Construyo sitios web atractivos, de alto rendimiento y optimizados para SEO que convierten visitantes en clientes.",
-  whatsappNumber: "+50585929205",
-  whatsappMessage: "Hola Víctor, me gustaría cotizar un proyecto de desarrollo web contigo.",
-  email: "victorduran.dev@gmail.com",
-  location: "Nicaragua • Proyectos locales e internacionales",
-  aboutBio: "Soy Víctor Durán, desarrollador web enfocado en la construcción de interfaces rápidas, responsivas y optimizadas para posicionamiento en buscadores (SEO).",
-  avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-  yearsOfExperience: "4+",
-  completedProjects: "35+",
-  satisfiedClients: "100%",
-  availableForFreelance: true,
-  githubUrl: "https://github.com",
-  linkedinUrl: "https://linkedin.com",
-  cvUrl: "#"
-};
-
-const FALLBACK_POLICY: PrivacyPolicy = {
-  lastUpdated: "7 de marzo de 2026",
-  title: "Políticas de Privacidad y Tratamiento de Datos",
-  introduction: "En este sitio web profesional la privacidad es fundamental.",
-  sections: [
-    {
-      title: "1. Información que recopilamos",
-      content: "Recopilamos únicamente datos facilitados voluntariamente por formularios de contacto o reseñas públicas."
-    }
-  ]
-};
-
 export default function App() {
-  const [config, setConfig] = useState<SiteConfig>(FALLBACK_CONFIG);
-  const [skills, setSkills] = useState<SkillItem[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [privacyPolicy, setPrivacyPolicy] = useState<PrivacyPolicy>(FALLBACK_POLICY);
+  const [config, setConfig] = useState<SiteConfig>(INITIAL_CONFIG);
+  const [skills, setSkills] = useState<SkillItem[]>(INITIAL_SKILLS);
+  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [privacyPolicy, setPrivacyPolicy] = useState<PrivacyPolicy>(INITIAL_POLICY);
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -74,38 +44,17 @@ export default function App() {
     } catch (_) {}
   };
 
-  // Fetch all live data from server
+  // Fetch all live data (Hybrid: Server API with Local Storage fallback)
   const loadPortfolioData = async () => {
     try {
-      setLoading(true);
-      const [contentRes, projectsRes, reviewsRes] = await Promise.all([
-        fetch('/api/content'),
-        fetch('/api/projects'),
-        fetch('/api/reviews', {
-          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-        })
-      ]);
-
-      if (contentRes.ok) {
-        const contentData = await contentRes.json();
-        if (contentData.config) setConfig(contentData.config);
-        if (contentData.skills) setSkills(contentData.skills);
-        if (contentData.privacyPolicy) setPrivacyPolicy(contentData.privacyPolicy);
-      }
-
-      if (projectsRes.ok) {
-        const projData = await projectsRes.json();
-        setProjects(projData);
-      }
-
-      if (reviewsRes.ok) {
-        const revData = await reviewsRes.json();
-        setReviews(revData);
-      }
+      const data = await PortfolioService.getFullPortfolio(authToken);
+      if (data.config) setConfig(data.config);
+      if (data.skills) setSkills(data.skills);
+      if (data.projects) setProjects(data.projects);
+      if (data.reviews) setReviews(data.reviews);
+      if (data.privacyPolicy) setPrivacyPolicy(data.privacyPolicy);
     } catch (err) {
-      console.error("Error loading portfolio data:", err);
-    } finally {
-      setLoading(false);
+      console.warn("Portfolio data loaded from local cache:", err);
     }
   };
 

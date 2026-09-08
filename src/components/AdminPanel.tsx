@@ -5,6 +5,7 @@ import {
   KeyRound, RefreshCw, Eye, EyeOff, UploadCloud, Upload, Link as LinkIcon, Camera, Loader2, FolderOpen
 } from 'lucide-react';
 import { PortfolioData, Project, Review, Inquiry, SiteConfig } from '../types';
+import { PortfolioService } from '../services/portfolioService';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -149,13 +150,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               })
             });
 
-            const json = await res.json();
-            if (res.ok && json.avatarUrl) {
-              setConfigForm((prev) => ({ ...prev, avatarUrl: json.avatarUrl }));
-              showToast('¡Foto de perfil actualizada y guardada con éxito!');
-              onDataUpdated();
-              setUploadingAvatar(false);
-              return;
+            if (res.headers.get('content-type')?.includes('application/json')) {
+              const json = await res.json();
+              if (res.ok && json.avatarUrl) {
+                setConfigForm((prev) => ({ ...prev, avatarUrl: json.avatarUrl }));
+                showToast('¡Foto de perfil actualizada y guardada con éxito!');
+                onDataUpdated();
+                setUploadingAvatar(false);
+                return;
+              }
             }
           } catch (uploadErr) {
             console.warn('Fallback a almacenamiento Base64:', uploadErr);
@@ -203,13 +206,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (!authToken) return;
     setLoadingInquiries(true);
     try {
-      const res = await fetch('/api/admin/inquiries', {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      if (res.ok) {
-        const list = await res.json();
-        setInquiries(list);
-      }
+      const list = await PortfolioService.getInquiries(authToken);
+      setInquiries(list);
     } catch (e) {
       console.error(e);
     } finally {
@@ -224,21 +222,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setLoginError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: loginUsername.trim(),
-          password: loginPassword.trim()
-        })
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.error || 'Credenciales incorrectas');
+      const result = await PortfolioService.login(loginUsername, loginPassword);
+      if (!result.success || !result.token) {
+        throw new Error(result.error || 'Credenciales incorrectas');
       }
 
-      setAuthToken(json.token);
+      setAuthToken(result.token);
       setLoginPassword('');
       setLoginError('');
       showToast('¡Sesión iniciada correctamente como Administrador!');
@@ -250,12 +239,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleLogout = () => {
-    if (authToken) {
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}` }
-      }).catch(console.error);
-    }
     setAuthToken(null);
     setLoginPassword('');
     showToast('Has cerrado sesión de administrador');
@@ -274,19 +257,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (!authToken) return;
 
     try {
-      const res = await fetch('/api/admin/content', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ config: configForm })
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Error al guardar');
-
-      showToast('Textos y configuración guardados exitosamente en el servidor');
+      await PortfolioService.saveContent({ config: configForm }, authToken);
+      showToast('Textos y configuración guardados exitosamente');
       onDataUpdated();
     } catch (err: any) {
       showToast(err.message || 'Error al actualizar', true);
@@ -300,23 +272,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     try {
       const isEditing = Boolean(editingProject);
-      const url = isEditing
-        ? `/api/admin/projects/${editingProject?.id}`
-        : '/api/admin/projects';
-      const method = isEditing ? 'PUT' : 'POST';
+      await PortfolioService.saveProject(
+        isEditing && editingProject ? { ...projectForm, id: editingProject.id } : projectForm,
+        authToken
+      );
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
-        },
-        body: JSON.stringify(projectForm)
-      });
-
-      if (!res.ok) throw new Error('Error al procesar el proyecto');
-
-      showToast(isEditing ? 'Proyecto actualizado en el servidor' : 'Proyecto agregado con éxito');
+      showToast(isEditing ? 'Proyecto actualizado con éxito' : 'Proyecto agregado con éxito');
       setIsAddingProject(false);
       setEditingProject(null);
       onDataUpdated();
@@ -329,13 +290,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (!authToken || !confirm('¿Estás seguro de eliminar este proyecto del portafolio?')) return;
 
     try {
-      const res = await fetch(`/api/admin/projects/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
-
-      showToast('Proyecto eliminado del servidor');
+      await PortfolioService.deleteProject(id, authToken);
+      showToast('Proyecto eliminado');
       onDataUpdated();
     } catch (err: any) {
       showToast(err.message || 'Error al eliminar', true);
@@ -349,24 +305,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     try {
       if (editingReview) {
-        const res = await fetch(`/api/admin/reviews/${editingReview.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`
-          },
-          body: JSON.stringify(reviewForm)
-        });
-        if (!res.ok) throw new Error('Error al actualizar reseña');
-        showToast('Reseña actualizada en el servidor');
+        await PortfolioService.saveReview({ ...reviewForm, id: editingReview.id }, authToken);
+        showToast('Reseña actualizada con éxito');
       } else {
-        const res = await fetch('/api/reviews', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reviewForm)
-        });
-        if (!res.ok) throw new Error('Error al agregar reseña');
-        showToast('Nueva reseña añadida al servidor');
+        await PortfolioService.saveReview(reviewForm, authToken);
+        showToast('Nueva reseña añadida con éxito');
       }
 
       setIsAddingReview(false);
@@ -381,13 +324,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (!authToken || !confirm('¿Estás seguro de eliminar esta reseña?')) return;
 
     try {
-      const res = await fetch(`/api/admin/reviews/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
-
-      showToast('Reseña eliminada del servidor');
+      await PortfolioService.deleteReview(id, authToken);
+      showToast('Reseña eliminada');
       onDataUpdated();
     } catch (err: any) {
       showToast(err.message || 'Error al eliminar', true);
@@ -397,10 +335,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const handleDeleteInquiry = async (id: string) => {
     if (!authToken) return;
     try {
-      await fetch(`/api/admin/inquiries/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+      await PortfolioService.deleteInquiry(id, authToken);
       fetchInquiries();
       showToast('Mensaje eliminado');
     } catch (e) {
@@ -425,25 +360,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     setSecurityLoading(true);
     try {
-      const res = await fetch('/api/admin/change-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          currentPassword: securityForm.currentPassword,
-          newPassword: securityForm.newPassword,
-          newUsername: securityForm.newUsername || undefined
-        })
-      });
+      const res = await PortfolioService.changePassword(
+        securityForm.currentPassword,
+        securityForm.newPassword,
+        securityForm.newUsername,
+        authToken
+      );
 
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.error || 'Error al actualizar contraseña');
+      if (!res.success) {
+        throw new Error(res.error || 'Error al actualizar contraseña');
       }
 
-      showToast('¡Contraseña de acceso actualizada con éxito en el servidor!');
+      showToast('¡Credenciales de acceso actualizadas con éxito!');
       setSecurityForm({
         currentPassword: '',
         newPassword: '',

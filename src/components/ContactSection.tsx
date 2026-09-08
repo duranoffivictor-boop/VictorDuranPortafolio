@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, Mail, MapPin, Send, CheckCircle, Clock } from 'lucide-react';
 import { SiteConfig } from '../types';
+import { PortfolioService } from '../services/portfolioService';
 
 interface ContactSectionProps {
   config: SiteConfig;
@@ -29,19 +30,14 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ config }) => {
     setErrorMessage('');
 
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          message: message.trim()
-        })
+      const res = await PortfolioService.submitContact({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        message: message.trim()
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al enviar mensaje');
+      if (!res.success) throw new Error('Error al enviar el mensaje');
 
       setSentSuccess(true);
       setName('');
