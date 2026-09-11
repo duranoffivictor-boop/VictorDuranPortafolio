@@ -114,7 +114,7 @@ export const Hero: React.FC<HeroProps> = ({ config }) => {
 
           {/* Right Column: Visual Profile Card & Code Window */}
           <div className="lg:col-span-5 flex flex-col items-center">
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full max-w-md lg:max-w-lg">
               
               {/* Decorative Glow */}
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 opacity-20 dark:opacity-30 blur-lg" />
@@ -126,10 +126,13 @@ export const Hero: React.FC<HeroProps> = ({ config }) => {
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <img
-                      src={(config.avatarUrl && config.avatarUrl.trim()) ? config.avatarUrl.trim() : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
+                      src={(config.avatarUrl && config.avatarUrl.trim() && !config.avatarUrl.includes('share.google')) ? config.avatarUrl.trim() : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
                       alt={`Foto de perfil de ${config.name || 'Víctor Durán'} Desarrollador Web`}
+                      width={80}
+                      height={80}
                       className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500/50 shadow-md bg-slate-100 dark:bg-slate-800"
                       loading="eager"
+                      decoding="async"
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
                         if (!target.src.includes('unsplash.com')) {

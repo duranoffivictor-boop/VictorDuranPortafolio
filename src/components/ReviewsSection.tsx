@@ -413,8 +413,8 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews, onRevie
           </div>
         </div>
 
-        {/* Reviews Cards Grid */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Reviews Cards Grid - Responsive for Desktop Computers */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviews.map((rev) => {
             const isOwner = Boolean(
               googleUser && (

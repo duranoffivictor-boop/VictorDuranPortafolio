@@ -10,7 +10,7 @@ export const INITIAL_CONFIG: SiteConfig = {
   email: "victorduran.dev@gmail.com",
   location: "Nicaragua • Disponible para proyectos locales y remotos a nivel global",
   aboutBio: "Soy Víctor Durán, programador web apasionado por la creación de soluciones digitales limpias, rápidas y efectivas. Domino los fundamentos esenciales de la web: HTML5 para una estructura semántica impecable y excelente SEO, CSS3 para interfaces visualmente impactantes y 100% responsivas en cualquier pantalla (móviles, tablets y laptops), y JavaScript puro para dotar a cada proyecto de interactividad fluida y dinamismo sin sobrecargas innecesarias. Me enfoco en estándares internacionales de calidad, accesibilidad y tiempos de carga récord.",
-  avatarUrl: "https://share.google/3Ldgsy3TPkFaTW6eh",
+  avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
   yearsOfExperience: "4+",
   completedProjects: "35+",
   satisfiedClients: "100%",

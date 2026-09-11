@@ -1,12 +1,37 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#020617" />
+
+    <!-- Inmediata activación de modo oscuro / color negro predeterminado para evitar FOUC y acelerar renderizado -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('vd_portfolio_theme');
+          if (saved === 'light') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+            document.documentElement.style.colorScheme = 'light';
+          } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            document.documentElement.style.colorScheme = 'dark';
+            if (!saved) {
+              localStorage.setItem('vd_portfolio_theme', 'dark');
+            }
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
     
     <!-- Preconnect & DNS-Prefetch for Speed & Core Web Vitals -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     <link rel="dns-prefetch" href="https://api.dicebear.com" />
 
@@ -261,8 +286,8 @@
     }
     </script>
   </head>
-  <body class="antialiased selection:bg-emerald-500 selection:text-white">
-    <div id="root"></div>
+  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white min-h-screen">
+    <div id="root" class="min-h-screen bg-slate-950 text-slate-100"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

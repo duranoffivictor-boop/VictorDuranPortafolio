@@ -166,13 +166,17 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ whatsappNumber }) => {
               return (
                 <article
                   key={faq.id}
-                  className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs"
+                  className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 overflow-hidden ${
+                    isOpen 
+                      ? 'border-emerald-400/70 dark:border-emerald-500/50 shadow-sm' 
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
                 >
                   <button
                     id={`btn-faq-${faq.id}`}
                     onClick={() => toggleItem(faq.id)}
                     aria-expanded={isOpen}
-                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 select-none cursor-pointer focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-850"
+                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 bg-transparent hover:bg-slate-50/80 dark:hover:bg-slate-800/50 active:bg-slate-100 dark:active:bg-slate-800/80 transition-colors"
                   >
                     <span className="font-bold text-base sm:text-lg text-slate-900 dark:text-white leading-snug">
                       {faq.question}
@@ -189,7 +193,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ whatsappNumber }) => {
                   {isOpen && (
                     <div 
                       id={`content-faq-${faq.id}`}
-                      className="px-5 sm:px-6 pb-6 pt-1 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in duration-150"
+                      className="px-5 sm:px-6 pb-6 pt-2 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/90 bg-white dark:bg-slate-900 animate-in fade-in duration-150"
                     >
                       <p>{faq.answer}</p>
                     </div>

@@ -18,26 +18,66 @@ import { PortfolioData, SiteConfig, Project, Review, PrivacyPolicy, SkillItem } 
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
-  const [config, setConfig] = useState<SiteConfig>(INITIAL_CONFIG);
-  const [skills, setSkills] = useState<SkillItem[]>(INITIAL_SKILLS);
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
-  const [privacyPolicy, setPrivacyPolicy] = useState<PrivacyPolicy>(INITIAL_POLICY);
+  // Immediate synchronous cache-first initialization to prevent any loading lag
+  const [config, setConfig] = useState<SiteConfig>(() => {
+    try {
+      const saved = localStorage.getItem('vd_portfolio_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && !parsed.avatarUrl?.includes('share.google')) {
+          return { ...INITIAL_CONFIG, ...parsed };
+        }
+      }
+    } catch (_) {}
+    return INITIAL_CONFIG;
+  });
+
+  const [skills, setSkills] = useState<SkillItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('vd_portfolio_skills');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_SKILLS;
+  });
+
+  const [projects, setProjects] = useState<Project[]>(() => {
+    try {
+      const saved = localStorage.getItem('vd_portfolio_projects');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_PROJECTS;
+  });
+
+  const [reviews, setReviews] = useState<Review[]>(() => {
+    try {
+      const saved = localStorage.getItem('vd_portfolio_reviews');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_REVIEWS;
+  });
+
+  const [privacyPolicy, setPrivacyPolicy] = useState<PrivacyPolicy>(() => {
+    try {
+      const saved = localStorage.getItem('vd_portfolio_policy');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_POLICY;
+  });
   
   const [loading, setLoading] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
 
-  // Theme management: 'dark' (default) or 'light' with persistent localStorage storage
+  // Theme management: Predeterminado 'dark' (negro)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const savedTheme = localStorage.getItem('vd_portfolio_theme');
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        return savedTheme;
+      if (savedTheme === 'light') {
+        return 'light';
       }
     } catch (_) {}
-    return 'dark';
+    return 'dark'; // Negro por defecto
   });
 
   // Apply theme class to document root element

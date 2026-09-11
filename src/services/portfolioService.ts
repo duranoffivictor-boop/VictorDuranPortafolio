@@ -62,7 +62,14 @@ async function safeFetchJson<T = any>(
   }
 
   try {
-    const res = await fetch(url, options);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2000); // 2s fast timeout to prevent page lag
+
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
 
     // If endpoint is 404 (e.g. server route not mounted), disable server calls to keep console clean
     if (res.status === 404) {
@@ -102,7 +109,7 @@ async function safeFetchJson<T = any>(
       ok: false,
       status: 0,
       isStaticHtml: false,
-      error: err?.message || 'Error de conexión de red'
+      error: err?.name === 'AbortError' ? 'Tiempo de espera de red agotado' : (err?.message || 'Error de conexión de red')
     };
   }
 }
@@ -131,6 +138,13 @@ export const PortfolioService = {
   async getFullPortfolio(authToken?: string | null): Promise<PortfolioData> {
     const rawLocalConfig = getLocal<Partial<SiteConfig>>(STORAGE_KEYS.CONFIG, INITIAL_CONFIG);
     const localConfig: SiteConfig = { ...INITIAL_CONFIG, ...rawLocalConfig };
+
+    // Clean up stale or broken share.google avatar URLs from previous versions
+    if (!localConfig.avatarUrl || localConfig.avatarUrl.includes('share.google')) {
+      localConfig.avatarUrl = INITIAL_CONFIG.avatarUrl;
+      setLocal(STORAGE_KEYS.CONFIG, localConfig);
+    }
+
     const localSkills = getLocal<SkillItem[]>(STORAGE_KEYS.SKILLS, INITIAL_SKILLS);
     const localProjects = getLocal<Project[]>(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS);
     const localReviews = getLocal<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);

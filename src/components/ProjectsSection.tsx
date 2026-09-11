@@ -57,8 +57,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, what
           ))}
         </div>
 
-        {/* Projects Grid */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Projects Grid with Desktop 3-Column Adaptation */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8">
           {filteredProjects.map((project) => {
             const projectWaText = encodeURIComponent(`Hola Víctor, estuve viendo tu proyecto "${project.title}" y me gustaría cotizar una web similar para mi negocio.`);
             const projectWaUrl = `https://wa.me/${cleanPhone}?text=${projectWaText}`;
@@ -66,10 +66,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, what
             return (
               <article
                 key={project.id}
-                className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-emerald-950/40 shadow-sm transition-all flex flex-col group"
+                className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-emerald-950/40 shadow-sm transition-all flex flex-col justify-between group"
               >
                 {/* Project Image Container */}
-                <div className="relative h-60 w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+                <div className="relative h-52 sm:h-56 lg:h-52 xl:h-56 w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
                   <img
                     src={(project.image && project.image.trim()) ? project.image.trim() : 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'}
                     alt={project.title}
@@ -94,7 +94,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, what
                 </div>
 
                 {/* Project Content */}
-                <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between space-y-6">
+                <div className="p-5 sm:p-6 lg:p-6 flex-1 flex flex-col justify-between space-y-5">
                   <div className="space-y-4">
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1.5">
@@ -134,8 +134,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, what
                     )}
                   </div>
 
-                  {/* Actions & WhatsApp Cotizar */}
-                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 flex items-center">
+                  {/* Action: WhatsApp Cotizar */}
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80">
                     <a
                       href={projectWaUrl}
                       target="_blank"

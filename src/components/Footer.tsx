@@ -20,6 +20,8 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenPrivacy }) => {
     { label: 'Inicio', href: '#inicio' },
     { label: 'Habilidades', href: '#habilidades' },
     { label: 'Proyectos', href: '#proyectos' },
+    { label: 'Por Qué Elegirme', href: '#ventajas' },
+    { label: 'Preguntas Frecuentes', href: '#faq' },
     { label: 'Redes Sociales', href: '#redes-sociales' },
     { label: 'Reseñas & Clientes', href: '#resenas' },
     { label: 'Contacto', href: '#contacto' },
