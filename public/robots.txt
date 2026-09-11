@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://duranoffivictor-boop.github.io/VictorDuranPortafolio/sitemap.xml
