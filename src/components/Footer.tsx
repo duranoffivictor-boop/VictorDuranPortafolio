@@ -72,8 +72,8 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenPrivacy }) => {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-bold text-lg">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-                <Code className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center font-bold shadow-md shadow-emerald-500/20">
+                <Code className="w-4 h-4 text-slate-950 stroke-[2.5]" />
               </div>
               <span>{config.name}</span>
             </div>

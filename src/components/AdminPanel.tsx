@@ -29,7 +29,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'content' | 'projects' | 'reviews' | 'inquiries' | 'security' | 'privacy'>('content');
 
   // Login form state
-  const [loginUsername, setLoginUsername] = useState('');
+  const [loginUsername, setLoginUsername] = useState('@adminduran');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
@@ -485,7 +485,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   autoComplete="off"
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
-                  placeholder="Ingresa tu usuario"
+                  placeholder="@adminduran"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>

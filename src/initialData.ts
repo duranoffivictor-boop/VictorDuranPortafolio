@@ -270,6 +270,6 @@ export const INITIAL_POLICY: PrivacyPolicy = {
 };
 
 export const INITIAL_ADMIN_CREDENTIALS = {
-  username: "admin2526",
-  password: "adminduran2526"
+  username: "@adminduran",
+  password: "adminduran50526"
 };

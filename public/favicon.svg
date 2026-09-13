@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#brandGrad)"/>
+  <g transform="translate(8, 8) scale(2)">
+    <polyline points="8 6 2 12 8 18" fill="none" stroke="#020617" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="16 18 22 12 16 6" fill="none" stroke="#020617" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

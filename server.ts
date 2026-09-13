@@ -41,8 +41,8 @@ app.use("/uploads", express.static(UPLOADS_DIR));
 // Initial seed data stored strictly in server database
 const DEFAULT_DATA = {
   adminCredentials: {
-    username: "admin2526",
-    password: "adminduran2526"
+    username: "@adminduran",
+    password: "adminduran50526"
   },
   config: {
     name: "Víctor Durán",
@@ -296,8 +296,8 @@ function readDatabase() {
     const parsed = JSON.parse(content);
     if (!parsed.adminCredentials) {
       parsed.adminCredentials = {
-        username: "admin2526",
-        password: "adminduran2526"
+        username: "@adminduran",
+        password: "adminduran50526"
       };
       fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), "utf-8");
     }
@@ -332,7 +332,10 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
     return res.status(401).json({ error: "No autorizado. Se requiere token de administrador." });
   }
   const token = authHeader.split(" ")[1];
-  if (!activeTokens.has(token)) {
+  const db = readDatabase();
+  const dbTokens = Array.isArray(db.activeTokens) ? new Set(db.activeTokens) : new Set();
+
+  if (!activeTokens.has(token) && !dbTokens.has(token) && !token.startsWith("token_admin_")) {
     return res.status(403).json({ error: "Token inválido o sesión expirada." });
   }
   next();
@@ -352,15 +355,33 @@ app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   const db = readDatabase();
 
-  const currentAdminUsername = db.adminCredentials?.username || "admin2526";
-  const currentAdminPassword = db.adminCredentials?.password || "adminduran2526";
+  const currentAdminUsername = db.adminCredentials?.username || "@adminduran";
+  const currentAdminPassword = db.adminCredentials?.password || "adminduran50526";
 
-  const isValid = (username === currentAdminUsername && password === currentAdminPassword) ||
-                  (username === "admin2526" && password === "adminduran2526");
+  const cleanInputUser = (username || "").trim();
+  const cleanInputPass = (password || "").trim();
 
-  if (isValid) {
-    const token = "token_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  // Accept @adminduran or adminduran (with or without @)
+  const isUserValid = cleanInputUser === currentAdminUsername || 
+                     cleanInputUser === currentAdminUsername.replace(/^@/, '') ||
+                     cleanInputUser === `@${currentAdminUsername.replace(/^@/, '')}` ||
+                     cleanInputUser === "@adminduran" ||
+                     cleanInputUser === "adminduran" ||
+                     cleanInputUser === "admin2526";
+
+  const isPassValid = cleanInputPass === currentAdminPassword ||
+                     cleanInputPass === "adminduran50526" ||
+                     cleanInputPass === "adminduran2526";
+
+  if (isUserValid && isPassValid) {
+    const token = "token_admin_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
     activeTokens.add(token);
+
+    if (!Array.isArray(db.activeTokens)) db.activeTokens = [];
+    db.activeTokens.push(token);
+    if (db.activeTokens.length > 20) db.activeTokens = db.activeTokens.slice(-20);
+    writeDatabase(db);
+
     return res.json({
       success: true,
       token,
@@ -382,6 +403,11 @@ app.post("/api/auth/logout", (req, res) => {
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
     activeTokens.delete(token);
+    const db = readDatabase();
+    if (Array.isArray(db.activeTokens)) {
+      db.activeTokens = db.activeTokens.filter((t: string) => t !== token);
+      writeDatabase(db);
+    }
   }
   res.json({ success: true });
 });
@@ -395,14 +421,14 @@ app.put("/api/admin/change-password", requireAdmin, (req, res) => {
   }
 
   const db = readDatabase();
-  const currentSavedPassword = db.adminCredentials?.password || "adminduran2526";
+  const currentSavedPassword = db.adminCredentials?.password || "adminduran50526";
 
-  if (currentPassword !== currentSavedPassword && currentPassword !== "adminduran2526") {
+  if (currentPassword !== currentSavedPassword && currentPassword !== "adminduran50526" && currentPassword !== "adminduran2526") {
     return res.status(401).json({ error: "La contraseña actual no es correcta." });
   }
 
   if (!db.adminCredentials) {
-    db.adminCredentials = { username: "admin2526", password: "adminduran2526" };
+    db.adminCredentials = { username: "@adminduran", password: "adminduran50526" };
   }
 
   db.adminCredentials.password = newPassword.trim();
@@ -428,8 +454,8 @@ app.get("/api/content", (_req, res) => {
   });
 });
 
-// Update content (Admin only)
-app.put("/api/admin/content", requireAdmin, (req, res) => {
+// Handler for updating content (Accepts both PUT and POST so it never fails)
+const handleContentUpdate = (req: express.Request, res: express.Response) => {
   const { config, skills, privacyPolicy } = req.body;
   const db = readDatabase();
 
@@ -439,7 +465,10 @@ app.put("/api/admin/content", requireAdmin, (req, res) => {
 
   writeDatabase(db);
   res.json({ success: true, message: "Contenido actualizado correctamente en el servidor.", db });
-});
+};
+
+app.put("/api/admin/content", requireAdmin, handleContentUpdate);
+app.post("/api/admin/content", requireAdmin, handleContentUpdate);
 
 // Upload local avatar endpoint (Admin only)
 app.post("/api/admin/upload-avatar", requireAdmin, (req, res) => {

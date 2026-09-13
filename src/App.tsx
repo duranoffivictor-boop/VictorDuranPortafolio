@@ -67,7 +67,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem('vd_admin_token') || localStorage.getItem('vd_admin_token') || null;
+    } catch (_) {
+      return null;
+    }
+  });
 
   // Theme management: Predeterminado 'dark' (negro)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -101,18 +107,13 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Ensure no old token persists in localStorage
-  useEffect(() => {
-    try {
-      localStorage.removeItem('vd_admin_token');
-      sessionStorage.removeItem('vd_admin_token');
-    } catch (_) {}
-  }, []);
-
   const handleSetAuthToken = (token: string | null) => {
     setAuthToken(token);
     try {
-      if (!token) {
+      if (token) {
+        sessionStorage.setItem('vd_admin_token', token);
+        localStorage.setItem('vd_admin_token', token);
+      } else {
         localStorage.removeItem('vd_admin_token');
         sessionStorage.removeItem('vd_admin_token');
       }
