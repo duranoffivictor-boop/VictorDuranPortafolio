@@ -243,7 +243,10 @@ export default function App() {
       {/* Admin Panel Modal with Login and Server Sync */}
       <AdminPanel
         isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
+        onClose={() => {
+          setIsAdminOpen(false);
+          handleSetAuthToken(null);
+        }}
         data={portfolioData}
         onDataUpdated={loadPortfolioData}
         authToken={authToken}

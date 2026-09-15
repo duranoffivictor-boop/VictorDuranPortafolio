@@ -355,36 +355,23 @@ app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   const db = readDatabase();
 
-  const currentAdminUsername = (db.adminCredentials?.username || "@adminduran").trim();
-  const currentAdminPassword = (db.adminCredentials?.password || "adminduran50526").trim();
+  const currentAdminUsername = db.adminCredentials?.username || "@adminduran";
+  const currentAdminPassword = db.adminCredentials?.password || "adminduran50526";
 
-  const cleanInputUser = (username || "").toString().trim().replace(/^['"]|['"]$/g, '');
-  const cleanInputPass = (password || "").toString().trim().replace(/^['"]|['"]$/g, '');
+  const cleanInputUser = (username || "").trim();
+  const cleanInputPass = (password || "").trim();
 
-  const userLower = cleanInputUser.toLowerCase();
-  const userNoAt = userLower.replace(/^@/, '');
-  const targetUserNoAt = currentAdminUsername.toLowerCase().replace(/^@/, '');
+  // Accept @adminduran or adminduran (with or without @)
+  const isUserValid = cleanInputUser === currentAdminUsername || 
+                     cleanInputUser === currentAdminUsername.replace(/^@/, '') ||
+                     cleanInputUser === `@${currentAdminUsername.replace(/^@/, '')}` ||
+                     cleanInputUser === "@adminduran" ||
+                     cleanInputUser === "adminduran" ||
+                     cleanInputUser === "admin2526";
 
-  // Accept @adminduran, adminduran, admin, @admin, admin2526, or current DB username
-  const isUserValid = 
-    userNoAt === targetUserNoAt ||
-    userNoAt === "adminduran" ||
-    userNoAt === "admin" ||
-    userNoAt === "admin2526" ||
-    cleanInputUser === currentAdminUsername ||
-    userLower === currentAdminUsername.toLowerCase();
-
-  const passLower = cleanInputPass.toLowerCase();
-  const targetPassLower = currentAdminPassword.toLowerCase();
-
-  // Accept adminduran50526, Adminduran50526, adminduran2526, admin2526, admin123, or current DB password
-  const isPassValid = 
-    cleanInputPass === currentAdminPassword ||
-    passLower === targetPassLower ||
-    passLower === "adminduran50526" ||
-    passLower === "adminduran2526" ||
-    passLower === "admin123" ||
-    passLower === "admin2526";
+  const isPassValid = cleanInputPass === currentAdminPassword ||
+                     cleanInputPass === "adminduran50526" ||
+                     cleanInputPass === "adminduran2526";
 
   if (isUserValid && isPassValid) {
     const token = "token_admin_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -399,7 +386,7 @@ app.post("/api/auth/login", (req, res) => {
       success: true,
       token,
       user: {
-        username: "@adminduran",
+        username: currentAdminUsername,
         name: "Víctor Durán",
         role: "Administrador General"
       }

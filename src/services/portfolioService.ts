@@ -51,8 +51,8 @@ async function safeFetchJson<T = any>(
   url: string,
   options?: RequestInit
 ): Promise<{ ok: boolean; status: number; data?: T; isStaticHtml?: boolean; error?: string }> {
-  // If we know we are in static hosting without backend, skip network request
-  if (!isServerAvailable && isStaticHost) {
+  // If we know we are in static hosting or server is unavailable, skip network request entirely
+  if (!isServerAvailable) {
     return {
       ok: false,
       status: 200,
@@ -63,7 +63,7 @@ async function safeFetchJson<T = any>(
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000); // 8s timeout to support container wake-up
+    const timer = setTimeout(() => controller.abort(), 2000); // 2s fast timeout to prevent page lag
 
     const res = await fetch(url, {
       ...options,
@@ -71,7 +71,8 @@ async function safeFetchJson<T = any>(
     });
     clearTimeout(timer);
 
-    if (res.status === 404 && isStaticHost) {
+    // If endpoint is 404 (e.g. server route not mounted), disable server calls to keep console clean
+    if (res.status === 404) {
       isServerAvailable = false;
       return {
         ok: false,
@@ -83,8 +84,8 @@ async function safeFetchJson<T = any>(
 
     const contentType = res.headers.get('content-type') || '';
 
-    // If server returned an HTML page in static hosting
-    if (!contentType.includes('application/json') && isStaticHost) {
+    // If server returned an HTML page (like GitHub Pages fallback 404 or index.html)
+    if (!contentType.includes('application/json')) {
       isServerAvailable = false;
       return {
         ok: false,
@@ -94,7 +95,7 @@ async function safeFetchJson<T = any>(
       };
     }
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
     return {
       ok: res.ok,
       status: res.status,
@@ -103,14 +104,12 @@ async function safeFetchJson<T = any>(
       error: !res.ok ? (data?.error || `Error ${res.status}`) : undefined
     };
   } catch (err: any) {
-    if (isStaticHost) {
-      isServerAvailable = false;
-    }
+    isServerAvailable = false;
     return {
       ok: false,
       status: 0,
       isStaticHtml: false,
-      error: err?.name === 'AbortError' ? 'Tiempo de espera agotado' : (err?.message || 'Error de conexión')
+      error: err?.name === 'AbortError' ? 'Tiempo de espera de red agotado' : (err?.message || 'Error de conexión de red')
     };
   }
 }
@@ -222,55 +221,51 @@ export const PortfolioService = {
 
   // 2. Admin Login
   async login(username: string, password: string): Promise<{ success: boolean; token: string; error?: string }> {
-    const rawUser = (username || '').toString().trim().replace(/^['"]|['"]$/g, '');
-    const rawPass = (password || '').toString().trim().replace(/^['"]|['"]$/g, '');
-
-    const userLower = rawUser.toLowerCase();
-    const userNoAt = userLower.replace(/^@/, '');
-    const passLower = rawPass.toLowerCase();
+    const cleanUser = username.trim();
+    const cleanPass = password.trim();
 
     // First attempt server login
-    try {
-      const serverRes = await safeFetchJson<{ token: string }>('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: rawUser, password: rawPass })
-      });
+    const serverRes = await safeFetchJson<{ token: string }>('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: cleanUser, password: cleanPass })
+    });
 
-      if (serverRes.ok && serverRes.data?.token) {
-        return { success: true, token: serverRes.data.token };
+    if (serverRes.ok && serverRes.data?.token) {
+      return { success: true, token: serverRes.data.token };
+    }
+
+    // If server is not running or returned static HTML (GitHub Pages environment)
+    if (serverRes.isStaticHtml || !serverRes.ok) {
+      const storedCreds = getLocal(STORAGE_KEYS.CREDENTIALS, INITIAL_ADMIN_CREDENTIALS);
+      
+      const isUserMatch = cleanUser === storedCreds.username ||
+                          cleanUser === storedCreds.username.replace(/^@/, '') ||
+                          cleanUser === `@${storedCreds.username.replace(/^@/, '')}` ||
+                          cleanUser === '@adminduran' ||
+                          cleanUser === 'adminduran' ||
+                          cleanUser === 'admin2526';
+
+      const isPassMatch = cleanPass === storedCreds.password ||
+                          cleanPass === 'adminduran50526' ||
+                          cleanPass === 'adminduran2526';
+
+      if (isUserMatch && isPassMatch) {
+        const localToken = `vd-token-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        return { success: true, token: localToken };
       }
-    } catch (_) {}
 
-    // Fallback authentication (works offline, in static preview, or if network glitch)
-    const storedCreds = getLocal(STORAGE_KEYS.CREDENTIALS, INITIAL_ADMIN_CREDENTIALS);
-    const storedUserNoAt = (storedCreds.username || '').toLowerCase().replace(/^@/, '');
-    const storedPassLower = (storedCreds.password || '').toLowerCase();
-
-    const isUserMatch =
-      userNoAt === storedUserNoAt ||
-      userNoAt === 'adminduran' ||
-      userNoAt === 'admin' ||
-      userNoAt === 'admin2526' ||
-      userLower === '@adminduran';
-
-    const isPassMatch =
-      rawPass === storedCreds.password ||
-      passLower === storedPassLower ||
-      passLower === 'adminduran50526' ||
-      passLower === 'adminduran2526' ||
-      passLower === 'admin123' ||
-      passLower === 'admin2526';
-
-    if (isUserMatch && isPassMatch) {
-      const localToken = `token_admin_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      return { success: true, token: localToken };
+      return {
+        success: false,
+        token: '',
+        error: serverRes.error && !serverRes.isStaticHtml ? serverRes.error : 'Usuario o contraseña incorrectos.'
+      };
     }
 
     return {
       success: false,
       token: '',
-      error: 'Usuario o contraseña incorrectos. Usa el botón "Rellenar credenciales" para ingresar automáticamente.'
+      error: serverRes.error || 'Credenciales incorrectas'
     };
   },
 
