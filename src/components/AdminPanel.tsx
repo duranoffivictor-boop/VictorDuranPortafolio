@@ -3,7 +3,7 @@ import {
   X, Lock, ShieldCheck, Save, Trash2, Plus, Edit2, CheckCircle2, Check,
   MessageCircle, Star, Inbox, FileText, Image as ImageIcon, Phone, User, AlertCircle,
   KeyRound, RefreshCw, Eye, EyeOff, UploadCloud, Upload, Link as LinkIcon, Camera, Loader2, FolderOpen,
-  Share2, ExternalLink, Video, Facebook, Instagram, Twitter
+  Share2, ExternalLink, Video, Facebook, Instagram, Twitter, Sparkles
 } from 'lucide-react';
 import { PortfolioData, Project, Review, Inquiry, SiteConfig } from '../types';
 import { PortfolioService } from '../services/portfolioService';
@@ -239,6 +239,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
+  const handleAutoFillAndLogin = async () => {
+    setLoginUsername('@adminduran');
+    setLoginPassword('adminduran50526');
+    setLoginLoading(true);
+    setLoginError('');
+
+    try {
+      const result = await PortfolioService.login('@adminduran', 'adminduran50526');
+      if (!result.success || !result.token) {
+        throw new Error(result.error || 'Credenciales incorrectas');
+      }
+
+      setAuthToken(result.token);
+      setLoginPassword('');
+      setLoginError('');
+      showToast('¡Bienvenido! Sesión iniciada correctamente.');
+    } catch (err: any) {
+      setLoginError(err.message || 'Error de autenticación');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     setAuthToken(null);
     setLoginPassword('');
@@ -246,8 +269,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleClose = () => {
-    handleLogout();
-    setLoginPassword('');
+    // Keep active session if already logged in so closing modal doesn't interrupt workflow
     setLoginError('');
     onClose();
   };
@@ -468,9 +490,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </p>
             </div>
 
+            {/* Quick Credentials Helper Card */}
+            <div className="w-full p-4 rounded-2xl bg-slate-950/90 border border-emerald-500/30 text-left space-y-2.5 shadow-xl shadow-black/40">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5" /> Credenciales de Administrador:
+                </span>
+                <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  Acceso Total
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                  <div className="text-[10px] text-slate-400 font-sans uppercase tracking-wider font-semibold">Usuario:</div>
+                  <div className="text-white font-bold select-all mt-0.5">@adminduran</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                  <div className="text-[10px] text-slate-400 font-sans uppercase tracking-wider font-semibold">Contraseña:</div>
+                  <div className="text-emerald-400 font-bold select-all mt-0.5">adminduran50526</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleAutoFillAndLogin}
+                disabled={loginLoading}
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-950/50 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>{loginLoading ? 'Iniciando sesión...' : 'Rellenar credenciales y Acceder con 1 Clic'}</span>
+              </button>
+            </div>
+
             {loginError && (
-              <div className="w-full p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-left">
-                {loginError}
+              <div className="w-full p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-left flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <div>
+                  <p>{loginError}</p>
+                  <button
+                    type="button"
+                    onClick={handleAutoFillAndLogin}
+                    className="underline text-emerald-400 hover:text-emerald-300 font-semibold mt-1 block"
+                  >
+                    Haz clic aquí para ingresar automáticamente
+                  </button>
+                </div>
               </div>
             )}
 
@@ -483,6 +546,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="text"
                   required
                   autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
                   placeholder="@adminduran"
@@ -499,10 +565,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type={showLoginPassword ? "text" : "password"}
                     required
                     autoComplete="new-password"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                    placeholder="adminduran50526"
+                    className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                   />
                   <button
                     type="button"
@@ -518,9 +587,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-semibold text-sm shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-semibold text-sm shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loginLoading ? 'Verificando...' : 'Iniciar Sesión'}
+                {loginLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{loginLoading ? 'Verificando...' : 'Iniciar Sesión'}</span>
               </button>
             </form>
           </div>
